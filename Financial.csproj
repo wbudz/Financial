@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Microsoft.Solver.Foundation" Version="3.1.0">
+		  <NoWarn>NU1701</NoWarn>
+	  </PackageReference>
+  </ItemGroup>
+
+</Project>
