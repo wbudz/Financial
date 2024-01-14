@@ -9,12 +9,13 @@ namespace Financial
 {
     public static class FixedIncome
     {
-        public static double Interest(DateTime date, DateTime maturity, double couponRate, int frequency, DayCountConvention dcc)
+        public static double Interest(DateTime date, DateTime maturity, double couponRate, int frequency, DayCountConvention dcc, bool rounded = true)
         {
             if (date >= maturity) throw new Exception("Cannot calculate interest on the maturity day or a later date.");
             double coupDays = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
             double coupSince = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
-            return Math.Round(coupSince / coupDays * couponRate / frequency * 100, 3);
+            double interest = coupSince / coupDays * couponRate / frequency * 100;
+            return rounded ? Math.Round(interest, 3) : interest;
         }
 
         public static double Price(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)
@@ -34,7 +35,7 @@ namespace Financial
         static double Price(Cashflows cf, DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)
         {
             double dirtyPrice = DirtyPrice(cf, date, maturity, couponRate, yield, redemption, frequency, dcc);
-            double interest = Interest(date, maturity, couponRate, frequency, dcc);
+            double interest = Interest(date, maturity, couponRate, frequency, dcc, false);
             return dirtyPrice - interest;
         }
 
