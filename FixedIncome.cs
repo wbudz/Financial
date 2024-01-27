@@ -15,7 +15,7 @@ namespace Financial
             double coupDays = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
             double coupSince = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
             double interest = coupSince / coupDays * couponRate / frequency * 100;
-            return rounded ? Math.Round(interest, 3) : interest;
+            return rounded ? Math.Round(interest, 3, MidpointRounding.AwayFromZero) : interest;
         }
 
         public static double Price(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)

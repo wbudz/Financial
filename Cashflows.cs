@@ -46,11 +46,9 @@ namespace Financial
             // coupons
             for (int i = 0; i < dates.Count(); i++)
             {
-                //cf.Add(new Cashflow(Math.Round((double)nominal * couponRate / frequency, 2), dates.ElementAt(i), yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
                 cf.Add(new Cashflow((double)nominal * couponRate / frequency, dates.ElementAt(i), yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
             }
             // redemption
-            //cf.Add(new Cashflow(Math.Round((double)nominal * redemption / 100, 2), maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
             cf.Add(new Cashflow((double)nominal * redemption / 100.0, maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
         }
 
