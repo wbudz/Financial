@@ -31,6 +31,10 @@ namespace Financial
             }
         }
 
+        private double purchaseDaysSincePrevCoupon;
+
+        private double purchaseDaysInCouponPeriod;
+
         public Cashflows(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc, decimal nominal)
         {
             var dates = DayCount.GetCoupons(date, maturity, frequency, dcc);
@@ -39,6 +43,9 @@ namespace Financial
             var length = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
             var coupons = DayCount.NumberOfRemainingCoupons(date, maturity, frequency, dcc);
 
+            purchaseDaysSincePrevCoupon = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
+            purchaseDaysInCouponPeriod = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
+
             this.frequency = frequency;
             this.yield = yield;
 
@@ -46,10 +53,10 @@ namespace Financial
             // coupons
             for (int i = 0; i < dates.Count(); i++)
             {
-                cf.Add(new Cashflow((double)nominal * couponRate / frequency, dates.ElementAt(i), yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
+                cf.Add(new Cashflow((double)nominal * couponRate / frequency, dates[i], yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc)));
             }
             // redemption
-            cf.Add(new Cashflow((double)nominal * redemption / 100.0, maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
+            cf.Add(new Cashflow((double)nominal * redemption / 100.0, maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc)));
         }
 
         public Cashflows(DateTime date, DateTime maturity, double couponRate, Curve curve, double redemption, int frequency, DayCountConvention dcc, decimal nominal)
@@ -60,6 +67,9 @@ namespace Financial
             var length = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
             var coupons = DayCount.NumberOfRemainingCoupons(date, maturity, frequency, dcc);
 
+            purchaseDaysSincePrevCoupon = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
+            purchaseDaysInCouponPeriod = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
+
             this.frequency = frequency;
             SetYields(curve);
 
@@ -67,10 +77,10 @@ namespace Financial
             // coupons
             for (int i = 0; i < dates.Count(); i++)
             {
-                cf.Add(new Cashflow((double)nominal * couponRate / frequency, dates.ElementAt(i), yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
+                cf.Add(new Cashflow((double)nominal * couponRate / frequency, dates.ElementAt(i), yield, frequency, i + days / (double)length, DayCount.YearFraction(date, dates.ElementAt(i), dcc)));
             }
             // redemption
-            cf.Add(new Cashflow((double)nominal * redemption / 100.0, maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc), DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc), DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc)));
+            cf.Add(new Cashflow((double)nominal * redemption / 100.0, maturity, yield, frequency, coupons - 1 + days / (double)length, DayCount.YearFraction(date, maturity, dcc)));
         }
 
         public Cashflows(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc) :
@@ -141,7 +151,9 @@ namespace Financial
             if (Count <= 2)
             {
                 var pr = GetPresentValue();
-                yield = ((1 + cf[0].Amount) - (pr / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount)) / (pr / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount) * cf[0].DaysInCouponPeriod / (cf[0].DaysInCouponPeriod - cf[0].DaysSincePrevCoupon);
+                yield = ((1 + cf[0].Amount) - (pr / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount)) / 
+                    (pr / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount) *
+                    purchaseDaysInCouponPeriod / (purchaseDaysInCouponPeriod - purchaseDaysSincePrevCoupon);
             }
             else
             {
@@ -168,7 +180,9 @@ namespace Financial
             if (Count <= 2)
             {
                 var pr = GetPresentValue();
-                yield = ((1 + cf[0].Amount) - (pr / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount)) / (pr / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount) * cf[0].DaysInCouponPeriod / (cf[0].DaysInCouponPeriod - cf[0].DaysSincePrevCoupon);
+                yield = ((1 + cf[0].Amount) - (pr / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount)) / 
+                    (pr / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount) *
+                    purchaseDaysInCouponPeriod / (purchaseDaysInCouponPeriod - purchaseDaysSincePrevCoupon);
             }
             else
             {
@@ -191,7 +205,9 @@ namespace Financial
             if (Count <= 2)
             {
                 var rf = Interpolation.Linear(cf[0].Tenor, rfr);
-                return ((1 + cf[0].Amount) - (goal / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount)) / (goal / 100 + cf[0].DaysSincePrevCoupon / cf[0].DaysInCouponPeriod * cf[0].Amount) * cf[0].DaysInCouponPeriod / (cf[0].DaysInCouponPeriod - cf[0].DaysSincePrevCoupon) - rf;
+                return ((1 + cf[0].Amount) - (goal / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount)) / 
+                    (goal / 100 + purchaseDaysSincePrevCoupon / purchaseDaysInCouponPeriod * cf[0].Amount) * 
+                    purchaseDaysInCouponPeriod / (purchaseDaysInCouponPeriod - purchaseDaysSincePrevCoupon) - rf;
             }
             else
             {
@@ -216,18 +232,14 @@ namespace Financial
         public double TimeCoefficient { get; set; }
         public double Tenor { get; set; }
         public double PresentValue { get; set; }
-        public double DaysSincePrevCoupon { get; set; }
-        public double DaysInCouponPeriod { get; set; }
 
-        public Cashflow(double amount, DateTime date, double yield, int frequency, double timeCoefficient, double tenor, double daysSincePrevCoupon, double daysInCouponPeriod)
+        public Cashflow(double amount, DateTime date, double yield, int frequency, double timeCoefficient, double tenor)
         {
             this.Amount = amount;
             this.Date = date;
             this.TimeCoefficient = timeCoefficient;
             this.Tenor = tenor;
             this.PresentValue = amount / Math.Pow(1 + yield / frequency, timeCoefficient);
-            this.DaysSincePrevCoupon = daysSincePrevCoupon;
-            this.DaysInCouponPeriod = daysInCouponPeriod;
         }
 
         public Cashflow(Cashflow other)
@@ -237,8 +249,6 @@ namespace Financial
             this.TimeCoefficient = other.TimeCoefficient;
             this.Tenor = other.Tenor;
             this.PresentValue = other.PresentValue;
-            this.DaysSincePrevCoupon = other.DaysSincePrevCoupon;
-            this.DaysInCouponPeriod = other.DaysInCouponPeriod;
         }
 
         public override string ToString()

@@ -9,7 +9,7 @@ namespace Financial
 {
     public static class FixedIncome
     {
-        public static double Interest(DateTime date, DateTime maturity, double couponRate, int frequency, DayCountConvention dcc, bool rounded = true)
+        public static double Interest(DateTime date, DateTime maturity, double couponRate, int frequency, DayCountConvention dcc, bool rounded = false)
         {
             if (date >= maturity) throw new Exception("Cannot calculate interest on the maturity day or a later date.");
             double coupDays = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
@@ -39,16 +39,45 @@ namespace Financial
             return dirtyPrice - interest;
         }
 
+        private static double CalculateDirtyPriceForSinglePeriod(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)
+        {
+            var A = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
+            var E = DayCount.DaysInCouponPeriod(date, maturity, frequency, dcc);
+            var T1 = 100 * couponRate / frequency + redemption;
+            var T2 = yield / frequency * (E - A) / E + 1;
+            return T1 / T2;
+        }
+
         public static double DirtyPrice(DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)
         {
-            var cashflows = new Cashflows(date, maturity, couponRate, yield, redemption, frequency, dcc);
-            return cashflows.GetPresentValue();
+            var couponCount = DayCount.NumberOfRemainingCoupons(date, maturity, frequency, dcc);
+            // Calculate for one coupon period
+            if (couponCount <= 1)
+            {
+                return CalculateDirtyPriceForSinglePeriod(date, maturity, couponRate, yield, redemption, frequency, dcc);
+            }
+            // Calculate for multiple periods
+            else
+            {
+                var cashflows = new Cashflows(date, maturity, couponRate, yield, redemption, frequency, dcc);
+                return cashflows.GetPresentValue();
+            }
         }
 
         public static double DirtyPrice(DateTime date, DateTime maturity, double couponRate, Curve curve, double redemption, int frequency, DayCountConvention dcc)
         {
-            var cashflows = new Cashflows(date, maturity, couponRate, curve, redemption, frequency, dcc);
-            return cashflows.GetPresentValue();
+            // Calculate for a single period
+            if (DayCount.NextCoupon(date, maturity, frequency, dcc) >= maturity)
+            {
+                // TODO: insert proper yield
+                return CalculateDirtyPriceForSinglePeriod(date, maturity, couponRate, couponRate, redemption, frequency, dcc);
+            }
+            // Calculate for multiple periods
+            else
+            {
+                var cashflows = new Cashflows(date, maturity, couponRate, curve, redemption, frequency, dcc);
+                return cashflows.GetPresentValue();
+            }
         }
 
         static double DirtyPrice(Cashflows cf, DateTime date, DateTime maturity, double couponRate, double yield, double redemption, int frequency, DayCountConvention dcc)

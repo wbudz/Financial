@@ -32,22 +32,22 @@ namespace Financial
             double A = DayCount.DaysSincePrevCoupon(date, maturity, frequency, dcc);
             double DSC = DayCount.DaysToNextCoupon(date, maturity, frequency, dcc);
 
-            //double presentValueOfRedemption = 100 * (1 - N - DSC / E) * Math.Pow(1 + yield, -N - DSC / E);
-            //double presentValueOfCouponPayments = 0;
-            //for (int k = 1; k <= N; k++)
-            //{
-            //    presentValueOfCouponPayments += (100 * (1 - k - DSC / E) * couponRate / frequency * Math.Pow(1 + yield, -k - DSC / E)) / Math.Pow(1, 2);
-            //}
-            //double accruedInterest = 100 * (couponRate / frequency) * (A / E);
-            //return presentValueOfRedemption + presentValueOfCouponPayments - accruedInterest;
-
-            double presentValueOfRedemption = -redemption * (N - 1 + DSC / E) * Math.Pow(1 + yield / frequency, -N - DSC / E);
+            double presentValueOfRedemption = 100 * (1 - N - DSC / E) * Math.Pow(1 + yield, -N - DSC / E);
             double presentValueOfCouponPayments = 0;
-            for (int k = 0; k < N; k++)
+            for (int k = 1; k <= N; k++)
             {
-                presentValueOfCouponPayments += -100 * couponRate / frequency * (k + DSC / E) * Math.Pow(1 + yield / frequency, -k - DSC / E);
+                presentValueOfCouponPayments += (100 * (1 - k - DSC / E) * couponRate / frequency * Math.Pow(1 + yield, -k - DSC / E)) / Math.Pow(1, 2);
             }
-            return presentValueOfRedemption + presentValueOfCouponPayments;
+            double accruedInterest = 100 * (couponRate / frequency) * (A / E);
+            return presentValueOfRedemption + presentValueOfCouponPayments - accruedInterest;
+
+            //double presentValueOfRedemption = -redemption * (N - 1 + DSC / E) * Math.Pow(1 + yield / frequency, -N - DSC / E);
+            //double presentValueOfCouponPayments = 0;
+            //for (int k = 0; k < N; k++)
+            //{
+            //    presentValueOfCouponPayments += -100 * couponRate / frequency * (k + DSC / E) * Math.Pow(1 + yield / frequency, -k - DSC / E);
+            //}
+            //return presentValueOfRedemption + presentValueOfCouponPayments;
         }
 
         public static double GoalSeek(Func<double, double> f, double goal, double tolerance = 0.001, int iterations = 100)
