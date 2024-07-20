@@ -66,6 +66,29 @@ namespace Financial
             }
         }
 
+        public static DateTime AddAndAlignToEndDate(DateTime date, int steps, TimeStep step)
+        {
+            date = GetEndDate(date, step);
+            switch (step)
+            {
+                case TimeStep.Daily:
+                    return date.AddDays(steps);
+                case TimeStep.Weekly:
+                    return date.AddDays(steps * 7);
+                case TimeStep.Monthly:
+                    return GetEndDate(date.AddMonths(steps), step);
+                case TimeStep.Quarterly:
+                    return GetEndDate(date.AddMonths(steps * 3), step);
+                case TimeStep.Semiannually:
+                    return GetEndDate(date.AddMonths(steps * 6), step);
+                case TimeStep.Yearly:
+                    return date.AddYears(steps);
+                default:
+                    return date;
+            }
+
+        }
+
         /// <summary>
         /// Generate dates ending periods between provided start and end dates.
         /// </summary>
@@ -82,6 +105,7 @@ namespace Financial
             while (date <= end)
             {
                 date = GetEndDate(date, step);
+                if (date > end) yield break;
                 yield return date;
                 date = date.AddDays(1);
             }
